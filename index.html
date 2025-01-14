@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubicación en Tiempo Real</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #menu {
+            width: 70%;
+            max-width: 300px;
+            background-color: rgb(255, 250, 250);
+            padding: 20px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        #menu.open {
+            transform: translateX(0);
+        }
+
+        #menu-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            background-image: url('icons/menu.png');
+            background-size: cover;
+            background-position: center;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        #map {
+            margin-left: 0;
+            height: 100vh;
+            width: 100%;
+            transition: margin-left 0.3s ease;
+        }
+
+        #menu.open + #map {
+            margin-left: 70%;
+            max-width: calc(100% - 300px);
+        }
+
+        /* Botones de rutas */
+        .rutas-btn, .rutas-btn-2, .rutas-btn-3 {
+            width: 100%;
+            max-width: 180px;
+            margin: 10px auto;
+            height: 60px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            font-style: italic;
+            font-weight: bold;
+            color: #ff000096;
+            background-image: url('icons/autobus.gif');
+            background-size: cover;
+            background-position: left;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .rutas-btn:hover, .rutas-btn-2:hover, .rutas-btn-3:hover {
+            background-color: #555;
+        }
+
+        /* Botón de ubicación */
+        .bus-btn-3d {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 60px;
+            height: 60px;
+            background-image: url('icons/rodeando.png');
+            background-size: cover;
+            background-position: center;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Créditos */
+        #creditos-container {
+            position: fixed;
+            top: 40px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background-color: transparent;
+            border-radius: 10px;
+        }
+
+        #creditos-container img {
+            width: 30px;
+            margin-right: 10px;
+        }
+
+        #creditos-container span {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Botones de ida y regreso */
+        .rutas-btn-ida, .rutas-btn-Regreso {
+            position: fixed;
+            top: 70px;
+            left: 10%;
+            width: 100px;
+            height: 30px;
+            text-align: center;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-style: italic;
+            border: none;
+            cursor: pointer;
+        }
+
+        .rutas-btn-ida {
+            background-color: black;
+            color: white;
+        }
+
+        .rutas-btn-Regreso {
+            background-color: black;
+            color: white;
+            top: 120px;
+        }
+
+        .rutas-btn-ida.active, .rutas-btn-Regreso.active {
+            background-color: white;
+            color: black;
+        }
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            #menu {
+                width: 90%;
+                max-width: 250px;
+            }
+
+            #menu.open + #map {
+                margin-left: 90%;
+            }
+
+            .rutas-btn, .rutas-btn-2, .rutas-btn-3 {
+                width: 90%;
+                height: 50px;
+                font-size: 14px;
+            }
+
+            .rutas-btn-ida, .rutas-btn-Regreso {
+                width: 80px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #menu {
+                width: 100%;
+            }
+
+            #menu.open + #map {
+                margin-left: 100%;
+            }
+
+            .rutas-btn, .rutas-btn-2, .rutas-btn-3 {
+                width: 100%;
+                height: 40px;
+                font-size: 12px;
+            }
+
+            .bus-btn-3d {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button id="menu-btn"></button>
+
+    <div id="menu">
+        <h2>Menú</h2>
+        <div class="buttons">
+            <button class="rutas-btn" onclick="changeMap('ruta1')">Manantial</button>
+            <button class="rutas-btn-2" onclick="changeMap('ruta2')">Amapolas</button>
+            <button class="rutas-btn-3" onclick="changeMap('ruta3')"></button>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="creditos-container">
+        <img src="icons/moneda-de-dolar-estadounidense.png" alt="Moneda" />
+        <span id="creditos">$1000</span> Créditos
+    </div>
+
+    <button class="bus-btn-3d" onclick="getRealTimeLocation()"></button>
+
+    <button class="rutas-btn-ida active" onclick="toggleKML('ida')">Ida</button>
+    <button class="rutas-btn-Regreso active" onclick="toggleKML('regreso')">Regreso</button>
+
+    <script>
+        let map;
+        let userMarker = null;
+
+        document.getElementById('menu-btn').addEventListener('click', function() {
+            document.getElementById('menu').classList.toggle('open');
+        });
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 15,
+                center: { lat: 19.1738, lng: -96.1349 }, // Veracruz
+            });
+
+            // Usamos la geolocalización del dispositivo
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    // Si no existe el marcador, lo creamos
+                    if (!userMarker) {
+                        userMarker = new google.maps.Marker({
+                            position: { lat, lng },
+                            map: map,
+                            title: "Tu ubicación",
+                            icon: {
+                                url: "icons/marcador.png", // Cambia por tu icono
+                                scaledSize: new google.maps.Size(40, 40),
+                            },
+                        });
+                    } else {
+                        // Si ya existe el marcador, lo movemos
+                        userMarker.setPosition({ lat, lng });
+                    }
+
+                    map.setCenter({ lat, lng });
+                }, function(error) {
+                    alert("No se pudo obtener la ubicación.");
+                    console.error(error);
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                });
+            } else {
+                alert("La geolocalización no está disponible en este navegador.");
+            }
+        }
+
+        window.onload = initMap;
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDG9gnm0PpI61gkMP_54rFzm4yUdBrSeQU&callback=initMap" async defer></script>
+</body>
+</html>
